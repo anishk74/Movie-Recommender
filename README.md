@@ -12,4 +12,4 @@ The dataset contains two 2-D arrays Y and R where Y contains the ratings provide
 
 ![](img/output.png)
 
-The above plot shows the loss incurred by the model with iteration. 
+The above plot shows the loss of the model with iteration. 
