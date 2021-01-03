@@ -17,7 +17,7 @@ no_movies,no_users=Y.shape
 
 model=Recommender(no_movies,no_users)
 
-history=model.fit(Y,R,epochs=100,alpha=0.0001)
+history=model.fit(Y,R,epochs=100,alpha=0.05)
 
 plt.plot(history)
 plt.xlabel('Iteration')

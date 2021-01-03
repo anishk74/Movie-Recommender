@@ -5,43 +5,40 @@ import time
 class Recommender:
 	def __init__(self,movies,users):
 		self.n=10
-		self.Theta=np.random.rand(users,self.n)
-		self.X=np.random.rand(movies,self.n)
+		self.Theta=tf.Variable(np.random.rand(users,self.n))
+		self.X=tf.Variable(np.random.rand(movies,self.n))
 
-	def fit(self,Y,R,epochs=20,alpha=0.00001,validation_split=0.2):
+	def fit(self,Y,R,epochs=20,alpha=0.001):
 		
 		history=[]
+
+		indices=np.asarray(np.where(R==1)).T
+		ratings=Y[R==1]
+		sparse_Y=tf.SparseTensor(indices=indices,
+									values=ratings,
+									dense_shape=Y.shape)
+
+		loss = lambda: tf.losses.mean_squared_error(sparse_Y.values,
+				tf.reduce_sum(
+				tf.gather(self.X, sparse_Y.indices[:, 0]) *
+				tf.gather(self.Theta, sparse_Y.indices[:, 1]),
+				axis=1))
+
+		opt=tf.keras.optimizers.Adam(learning_rate=alpha)
 		
-		total_ratings=sum(sum(R))
-		for i in range(epochs):
-			#start=time.time()
+		for epoch in range(epochs):
 
-			cost=(1/(2*total_ratings)) * sum(sum((np.matmul(self.X, self.Theta.T) * R - Y)**2)) # ((X*Theta')*R - Y)^2
-			#end=time.time()
-			#print('Cost',end-start)
-			history.append(cost)
-			X_grad=np.zeros(self.X.shape)
-			#start=time.time()
-			for i in range(len(self.X)):
-				X_grad[i] = np.matmul(
-									(np.matmul(
-										self.X[i],
-										self.Theta[R[i,:]==1].T) - Y[i,R[i,:]==1]),
-									self.Theta[R[i,:]==1])
+			with tf.GradientTape() as tape:
+				loss_value = loss()
 
-			Theta_grad=np.zeros(self.Theta.shape)
-			for j in range(len(self.Theta)):
-				Theta_grad[j] = np.matmul(
-									(np.matmul(
-										self.X[R[:,j]==1],
-										self.Theta[j].T) - Y[R[:,j]==1,j]),
-									self.X[R[:,j]==1])
-			#end=time.time()
-			#print('Gradient',end-start)
-			self.X = self.X - alpha * X_grad
-			self.Theta = self.Theta - alpha * Theta_grad
+			history.append(float(loss_value))
 
-		
+			grads = tape.gradient(loss_value, [self.X,self.Theta])
+			opt.apply_gradients(zip(grads, [self.X,self.Theta]))
+			if epoch%10==0:
+				print('Epochs:', epoch, 'Loss:', float(loss_value),'\n')
+		print('Epochs:', epoch, 'Loss:', float(loss_value),'\n')
+
 
 		return history
 
