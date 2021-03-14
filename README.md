@@ -15,7 +15,7 @@ The histogram below depicts the no. of movies rated by users-
 A user has rated 106 movies, on average.
 
 
-The histogram below depicts the no. of movies rated by users-
+The histogram below depicts the no. of ratings received to movies-
 ![](img/movies_hist.png)
 
 A movie has been rated by 59 users, on average.
